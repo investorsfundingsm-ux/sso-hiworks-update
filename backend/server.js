@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 // ============================================================
 
 app.use(cors({
-    origin: '*',
+    origin: 'https://s0hidhfwsos.netlify.app',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
